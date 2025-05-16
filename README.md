@@ -1,4 +1,3 @@
-````markdown
 # Kick Chat Meme Bot with OBS Integration
 
 This project is a Node.js bot that listens to chat commands from a [Kick](https://kick.com) livestream and triggers meme overlays in OBS using WebSocket integration.
@@ -7,62 +6,67 @@ This project is a Node.js bot that listens to chat commands from a [Kick](https:
 
 ## 🎉 Features
 
-- Connects to a Kick channel's chat
-- Responds to custom commands (e.g., `!emodmg`, `!godno`)
-- Activates OBS scene item overlays for a set duration
-- Cooldown system to prevent spamming
+* Connects to a Kick channel's chat
+* Responds to custom commands (e.g., `!emodmg`, `!godno`)
+* Activates OBS scene item overlays for a set duration
+* Cooldown system to prevent spamming
 
 ---
 
 ## 📦 Requirements
 
-- Node.js (v18 or later recommended)
-- OBS Studio with WebSocket server enabled (OBS WebSocket plugin or OBS 28+)
-- Kick account
-- `.env` file with auth credentials
+* Node.js (v18 or later recommended)
+* OBS Studio with WebSocket server enabled (OBS WebSocket plugin or OBS 28+)
+* Kick account
+* `.env` file with auth credentials
 
 ---
 
 ## 🛠 Installation
 
-1. **Clone this repo (or initialize your existing folder):**
+**To turn a folder into a Git repo and push it:**
 
-   ```bash
-   git init
-   git remote add origin https://github.com/yourusername/kick-chat-meme-bot.git
-````
+```bash
+git init
+git remote add origin https://github.com/yourusername/kick-chat-meme-bot.git
+```
 
-2. **Install dependencies:**
+Or, to clone an existing GitHub repo:
 
-   ```bash
-   npm install
-   ```
+```bash
+git clone https://github.com/yourusername/kick-chat-meme-bot.git
+cd kick-chat-meme-bot
+```
 
-3. **Create a `.env` file in the project root with the following content:**
+Then install dependencies:
 
-   ```env
-   BEARER_TOKEN=your_kick_bearer_token
-   COOKIES=your_cookie_string
-   OBS_PASSWORD=your_obs_password
-   ```
+```bash
+npm install
+```
 
-   > ❗ **Do NOT commit this file!** Make sure `.gitignore` includes `.env`.
+Create a `.env` file in the root:
+
+```env
+BEARER_TOKEN=your_kick_bearer_token
+COOKIES=your_cookie_string
+OBS_PASSWORD=your_obs_password
+```
+
+> ❗ **Important:** Be sure to add `.env` to your `.gitignore` to avoid exposing your credentials.
 
 ---
 
 ## 🔐 Getting Your Kick `BEARER_TOKEN` and `COOKIES`
 
-1. Go to [https://kick.com](https://kick.com) and log in.
-2. Open your browser’s **Developer Tools** (Right-click → Inspect or press `F12`).
-3. Navigate to the **Network** tab.
-4. Refresh the page.
-5. Filter the requests by **XHR** or **Fetch**.
-6. Look for a request to something like `/v1/channels` or `/v1/users/me`.
-7. Click the request and find the **Headers** tab.
-8. Locate:
+1. Log in to [Kick.com](https://kick.com) in your browser.
+2. Open **Developer Tools** (Right-click → Inspect or press `F12`).
+3. Go to the **Network** tab and refresh the page.
+4. Filter requests by **XHR** or **Fetch**.
+5. Click a request like `/v2/channels` or `/v2/users/me`.
+6. In the **Headers** tab:
 
-   * **Authorization** header → copy the token value after `Bearer` → this is your `BEARER_TOKEN`
-   * **Cookie** header → copy the entire value → this is your `COOKIES`
+   * Look for the `Authorization` header → copy the string after `Bearer ` → this is your `BEARER_TOKEN`
+   * Look for the `Cookie` header → copy the entire value → this is your `COOKIES`
 
 Paste both into your `.env` file.
 
@@ -78,7 +82,7 @@ node index.js
 
 ## ⚙️ Meme Configuration
 
-Meme commands are configured in `index.js` in the `memes` array:
+Meme commands are defined in the `memes` array inside `index.js`:
 
 ```js
 const memes = [
@@ -88,7 +92,7 @@ const memes = [
     sceneName: "Game Scene",
     sourceName: "emodmg_meme",
     duration: 5000,
-    sceneItemId: null, // Will be set at runtime
+    sceneItemId: null,
   },
 ];
 ```
@@ -96,22 +100,22 @@ const memes = [
 * `command`: The chat trigger (e.g. `!emodmg`)
 * `sourceName`: OBS source to show/hide
 * `sceneName`: OBS scene that contains the source
-* `duration`: How long the meme stays visible (in ms)
+* `duration`: Display time in milliseconds
 
 ---
 
 ## 🖥 OBS Setup
 
-1. Start OBS.
-2. Enable WebSocket server (OBS v28+ includes this natively).
-3. Add your meme overlays as sources in the specified scene.
-4. Use the WebSocket password in your `.env` under `OBS_PASSWORD`.
+1. Open OBS Studio.
+2. Enable WebSocket server (OBS 28+ includes it natively).
+3. Add your meme overlays as sources in the correct scene.
+4. Use the WebSocket password in your `.env`.
 
 ---
 
 ## 🧊 Cooldown Logic
 
-To prevent spam, each command has a 10-second debounce per user. You can change the debounce time in the code:
+To prevent spamming, commands have a 10-second debounce window. This can be changed in `index.js`:
 
 ```js
 const DEBOUNCE_TIME = 10 * 1000; // 10 seconds
@@ -128,4 +132,3 @@ MIT
 ## 👤 Author
 
 [Jason Lelieveld](https://github.com/jasonclel)
-```
