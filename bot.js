@@ -8,7 +8,7 @@ const obs = new OBSWebSocket();
 // Connect to OBS WebSocket server
 await obs.connect("ws://localhost:4455", process.env.OBS_PASSWORD);
 
-const SCENE_NAME = "Game Scene";
+const SCENE_NAME = "Screen record";
 
 // === Meme Table ===
 // Each meme entry defines a chat command, the source to toggle in OBS, and how long it should show
@@ -23,9 +23,105 @@ const memes = [
   },
   {
     namespace: "godno",
-    command: "!godno",
+    command: "!nooo",
     sceneName: SCENE_NAME,
     sourceName: "godno_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "cry",
+    command: "!cry",
+    sceneName: SCENE_NAME,
+    sourceName: "cry_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "boom",
+    command: "!boom",
+    sceneName: SCENE_NAME,
+    sourceName: "explosion_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "gethelp",
+    command: "!stopit",
+    sceneName: SCENE_NAME,
+    sourceName: "gethelp_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "jumpscare",
+    command: "!jumpscare",
+    sceneName: SCENE_NAME,
+    sourceName: "jumpscare_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "kekw",
+    command: "!kekw",
+    sceneName: SCENE_NAME,
+    sourceName: "kekw_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "madbruh",
+    command: "!mad",
+    sceneName: SCENE_NAME,
+    sourceName: "madbruh_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "nice",
+    command: "!nice",
+    sceneName: SCENE_NAME,
+    sourceName: "nice_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "omg",
+    command: "!omg",
+    sceneName: SCENE_NAME,
+    sourceName: "omg_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "scream",
+    command: "!scream",
+    sceneName: SCENE_NAME,
+    sourceName: "scream_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "wow",
+    command: "!wow",
+    sceneName: SCENE_NAME,
+    sourceName: "wow_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "yeaboi",
+    command: "!yeaboi",
+    sceneName: SCENE_NAME,
+    sourceName: "yeaboi_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
+  {
+    namespace: "uberbjs",
+    command: "!uberbjs",
+    sceneName: SCENE_NAME,
+    sourceName: "uberbjs_meme",
     duration: 10000,
     sceneItemId: null,
   },
