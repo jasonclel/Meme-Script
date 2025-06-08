@@ -6,9 +6,15 @@ import OBSWebSocket from "obs-websocket-js";
 const obs = new OBSWebSocket();
 
 // Connect to OBS WebSocket server
-await obs.connect("ws://localhost:4455", process.env.OBS_PASSWORD);
+try {
+  await obs.connect("ws://localhost:4455", process.env.OBS_PASSWORD);
+  console.log("Connected to OBS");
+} catch (err) {
+  console.error("Failed to connect to OBS:", err);
+  process.exit(1);
+}
 
-const SCENE_NAME = "Screen record";
+const SCENE_NAME = "Game Scene";
 
 // === Meme Table ===
 // Each meme entry defines a chat command, the source to toggle in OBS, and how long it should show
@@ -125,11 +131,23 @@ const memes = [
     duration: 10000,
     sceneItemId: null,
   },
+  {
+    namespace: "bald",
+    command: "!bald",
+    sceneName: SCENE_NAME,
+    sourceName: "bald_meme",
+    duration: 10000,
+    sceneItemId: null,
+  },
 ];
 
 // Keeps track of the last time each command was triggered to prevent spamming
+// === Cooldown + Queue Tracking ===
 const lastTriggered = {};
-const DEBOUNCE_TIME = 10 * 1000; // 10 seconds in milliseconds
+const meme_queue = []; // Changed to array for ordered queue
+let lastMemePlayedTime = 0;
+const meme_cooldown = 15 * 1000; // 15s
+const DEBOUNCE_TIME = 10 * 1000;
 
 // === Helper Functions ===
 
@@ -177,32 +195,51 @@ client.on("ready", () => {
   console.log(`Bot is ready and connected as ${client.user?.tag}`);
 });
 
-// Listen for chat messages and trigger memes based on commands
+// === Queue Processor ===
+setInterval(async () => {
+  const now = Date.now();
+
+  if (meme_queue.length === 0) return;
+
+  // Wait for cooldown before triggering next meme
+  if (now - lastMemePlayedTime < meme_cooldown) return;
+
+  const meme = meme_queue.shift();
+  console.log(`Dequeued meme: ${meme.namespace}`);
+
+  try {
+    await triggerMeme(meme);
+    lastMemePlayedTime = Date.now();
+  } catch (err) {
+    console.error(`Failed to trigger meme '${meme.namespace}':`, err);
+  }
+}, 1000); // Check every second
+
+// === Chat Listener ===
 client.on("ChatMessage", async (message) => {
   const content = message.content.trim().toLowerCase();
-
   const meme = memes.find(m => m.command === content);
-  if (!meme) return; // Ignore messages that aren't meme commands
+  if (!meme) return;
 
   const now = Date.now();
   const lastTime = lastTriggered[meme.command] || 0;
 
-  // Debounce to avoid spam
-  if (now - lastTime > DEBOUNCE_TIME) {
-    lastTriggered[meme.command] = now;
-    console.log(`Triggering meme '${meme.namespace}' for command '${meme.command}'`);
-    try {
-      await triggerMeme(meme);
-    } catch (err) {
-      console.error(`Failed to trigger meme '${meme.namespace}':`, err);
-    }
-  } else {
-    console.log(`Command '${meme.command}' is on cooldown.`);
+  if (now - lastTime < DEBOUNCE_TIME) {
+    console.log(`Debounced: '${meme.command}' was used recently.`);
+    console.log(`meme timer: '${lastTriggered[meme.command]}'.`);
+    console.log(`time result: '${now - lastTime}'`);
+    return;
   }
+  
+  lastTriggered[meme.command] = now;
+
+  // Add meme to queue
+  meme_queue.push(meme);
+  console.log(`Enqueued meme: ${meme.namespace}`);
 });
 
 // Log into Kick chat
-client.login({
+await client.login({
   type: "tokens",
   credentials: {
     bearerToken: process.env.BEARER_TOKEN,
