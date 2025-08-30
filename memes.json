@@ -1,0 +1,20 @@
+[
+  {
+    "namespace": "bald",
+    "command": "!bald",
+    "filePath": "/Volumes/KINGSTON/Streaming/Assets/On_stream_Memes/Bald.mp4",
+    "duration": 5000
+  },
+  {
+    "namespace": "emodmg",
+    "command": "!emodmg",
+    "filePath": "/Volumes/KINGSTON/Streaming/Assets/On_stream_Memes/emodmg_meme.mp4",
+    "duration": 5000
+  },
+  {
+    "namespace": "kekw",
+    "command": "!kekw",
+    "filePath": "/Volumes/KINGSTON/Streaming/Assets/On_stream_Memes/kekw_meme.mp4",
+    "duration": 5000
+  }
+]

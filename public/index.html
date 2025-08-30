@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kick Meme Bot Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #4a6741);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .meme-list {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .meme-item {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: grid;
+            grid-template-columns: 3fr 2fr 1fr 2fr;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .meme-item:last-child {
+            border-bottom: none;
+        }
+
+        .meme-item:hover {
+            background: #f8f9fa;
+        }
+
+        .meme-header {
+            background: #2c3e50;
+            color: white;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+
+        .command-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+
+        .duration-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .file-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .file-input-container input[type="text"] {
+            flex: 1;
+            background: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .file-input-container input[type="text"]:focus {
+            background: #fff;
+            border-color: #667eea;
+        }
+
+        .file-input-container input[type="text"]::placeholder {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+        }
+
+        .path-mode-info {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .info-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+
+        .url-container, .status-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .url-container input {
+            flex: 1;
+            background: #f8f9fa;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            font-size: 20px;
+            margin-right: 5px;
+        }
+
+        .status-indicator.online {
+            color: #28a745;
+        }
+
+        .status-indicator.offline {
+            color: #dc3545;
+        }
+
+        .status-indicator.checking {
+            color: #ffc107;
+        }
+
+        .connection-status {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .connection-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .connection-indicator {
+            font-size: 16px;
+        }
+
+        .connection-indicator.connected {
+            color: #28a745;
+        }
+
+        .connection-indicator.disconnected,
+        .connection-indicator.error,
+        .connection-indicator.failed {
+            color: #dc3545;
+        }
+
+        .connection-indicator.connecting,
+        .connection-indicator.reconnecting {
+            color: #ffc107;
+        }
+
+        .connection-details {
+            font-size: 12px;
+            color: #666;
+            margin-left: 26px;
+        }
+
+        @media (max-width: 768px) {
+            .meme-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .file-input-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .url-container, .status-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Kick Meme Bot Configuration</h1>
+            <p>Manage your chat-triggered meme overlays</p>
+        </div>
+
+        <div class="content">
+            <!-- Alert Messages -->
+            <div id="alert-container"></div>
+
+            <!-- Stream Manager & Overlay Info -->
+            <div class="form-section">
+                <h2>🎛️ Stream Manager & OBS Setup</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Meme Overlay URL</h3>
+                        <div class="url-container">
+                            <input type="text" id="overlayUrl" value="http://localhost:3000/overlays/memes" readonly>
+                            <button class="btn btn-secondary" onclick="copyOverlayUrl()">Copy</button>
+                            <button class="btn btn-secondary" onclick="openOverlay()">Test</button>
+                        </div>
+                        <small>Use this URL as a Browser Source in OBS (1920x1080 recommended)</small>
+                    </div>
+                    <div class="info-card">
+                        <h3>Stream Manager Status</h3>
+                        <div class="status-container">
+                            <span class="status-indicator" id="streamManagerStatus">●</span>
+                            <span id="streamManagerText">Checking...</span>
+                            <button class="btn btn-primary" id="streamManagerBtn" onclick="toggleStreamManager()">Start Stream Manager</button>
+                        </div>
+                        <div class="connection-status" id="connectionStatusContainer" style="display: none;">
+                            <div class="connection-info">
+                                <span class="connection-indicator" id="connectionStatus">●</span>
+                                <span id="connectionText">Disconnected</span>
+                            </div>
+                            <div id="connectionDetails" class="connection-details"></div>
+                        </div>
+                        <small>The stream manager handles chat monitoring and meme triggering</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add/Edit Meme Form -->
+            <div class="form-section">
+                <h2>Add New Meme</h2>
+                <form id="meme-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="namespace">Namespace (ID)</label>
+                            <input type="text" id="namespace" name="namespace" placeholder="e.g., emodmg" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="command">Chat Command</label>
+                            <input type="text" id="command" name="command" placeholder="e.g., !emodmg" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="filePath">Meme File Path</label>
+                            <div class="file-input-container">
+                                <input type="text" id="filePathDisplay" placeholder="Enter full file path or click Browse..." style="flex: 1;">
+                                <input type="file" id="filePath" name="filePath" accept=".gif,.jpg,.jpeg,.png,.webp,.bmp,.svg,.mp4,.webm,.mov,.avi,.mkv,.flv,.m4v,.mp3,.wav,.ogg,.aac,.m4a" style="display: none;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('filePath').click()">Browse</button>
+                                <button type="button" class="btn btn-secondary" onclick="togglePathMode()">📝</button>
+                            </div>
+                            <div class="path-mode-info" style="margin-top: 8px; font-size: 12px; color: #666;">
+                                <strong>💡 Path Examples:</strong><br>
+                                <strong>macOS/Linux:</strong> /Users/username/Downloads/meme.gif<br>
+                                <strong>Windows:</strong> C:\Users\username\Downloads\meme.gif<br>
+                                <button type="button" class="btn" style="font-size: 11px; padding: 2px 8px; margin-top: 4px;" onclick="showPathHelp()">Show Path Help</button>
+                            </div>
+                            <small style="color: #666; font-size: 0.9em;">Supported: Images (.gif, .jpg, .png, .webp, .svg), Videos (.mp4, .webm, .mov, .avi, .mkv), Audio (.mp3, .wav, .ogg, .aac)</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="duration">Duration (milliseconds)</label>
+                        <input type="number" id="duration" name="duration" placeholder="5000" min="100" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">Add Meme</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-btn" style="display: none;" onclick="cancelEdit()">Cancel</button>
+                </form>
+            </div>
+
+            <!-- Meme List -->
+            <div class="form-section">
+                <h2>Current Memes</h2>
+                <div id="meme-list" class="meme-list">
+                    <div class="loading">Loading memes...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isEditing = false;
+        let editingNamespace = null;
+
+        // DOM Elements
+        const memeForm = document.getElementById('meme-form');
+        const memeList = document.getElementById('meme-list');
+        const alertContainer = document.getElementById('alert-container');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const fileInput = document.getElementById('filePath');
+        const filePathDisplay = document.getElementById('filePathDisplay');
+
+        // Handle file selection
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                // Try to get full path (works in Electron/desktop apps)
+                if (file.path) {
+                    filePathDisplay.value = file.path;
+                    showAlert('Full file path captured successfully!', 'success');
+                } else {
+                    // For web browsers, we need user to provide full path
+                    const filename = file.name;
+                    
+                    // If field is empty, provide a template based on OS
+                    if (!filePathDisplay.value.trim()) {
+                        const isWindows = navigator.platform.toLowerCase().includes('win');
+                        const isMac = navigator.platform.toLowerCase().includes('mac');
+                        
+                        let template;
+                        if (isWindows) {
+                            template = `C:\\Users\\[username]\\Downloads\\${filename}`;
+                        } else if (isMac) {
+                            template = `/Users/[username]/Downloads/${filename}`;
+                        } else {
+                            template = `/home/[username]/Downloads/${filename}`;
+                        }
+                        
+                        filePathDisplay.value = template;
+                        showAlert('Please edit the path template with your actual username and folder location', 'error');
+                        
+                        // Select the [username] part for easy editing
+                        filePathDisplay.focus();
+                        const usernameStart = template.indexOf('[username]');
+                        if (usernameStart !== -1) {
+                            filePathDisplay.setSelectionRange(usernameStart, usernameStart + 10);
+                        }
+                    } else {
+                        // If there's already a path, just update the filename
+                        const currentPath = filePathDisplay.value.trim();
+                        const lastSlash = Math.max(currentPath.lastIndexOf('/'), currentPath.lastIndexOf('\\'));
+                        if (lastSlash !== -1) {
+                            const directory = currentPath.substring(0, lastSlash + 1);
+                            filePathDisplay.value = directory + filename;
+                            showAlert('Updated filename in existing path', 'success');
+                        }
+                    }
+                }
+            } else {
+                filePathDisplay.value = '';
+            }
+        });
+
+        // Toggle path entry mode
+        function togglePathMode() {
+            filePathDisplay.focus();
+            filePathDisplay.select();
+        }
+
+        // Show path help
+        function showPathHelp() {
+            const helpText = `🔧 How to get the FULL file path:
+
+⚠️ BROWSER LIMITATION: Web browsers don't provide full file paths for security reasons. You need to get the complete path manually:
+
+macOS Method:
+1. Open Finder and locate your file
+2. Right-click the file → "Get Info"
+3. Copy the path from "Where:" field
+4. Combine: [Where path] + [filename]
+   Example: /Users/john/Downloads/meme.gif
+
+Windows Method:
+1. Open File Explorer and find your file
+2. Hold Shift + right-click the file
+3. Click "Copy as path"
+4. Paste (remove quotes if present)
+   Example: C:\\Users\\john\\Downloads\\meme.gif
+
+Quick Tip:
+• Use the Browse button to get the filename
+• Then edit the template to add your real username/path
+• Or manually type/paste the complete file path
+
+✅ Valid paths look like:
+• /Users/yourname/Desktop/funny.gif
+• C:\\Users\\yourname\\Downloads\\video.mp4
+• /home/yourname/Pictures/meme.png`;
+
+            alert(helpText);
+        }
+
+        // Validate file path
+        function validateFilePath(filePath) {
+            if (!filePath || filePath.length < 3) {
+                return { valid: false, message: 'Please enter a file path' };
+            }
+
+            // Check for template placeholders that need to be replaced
+            if (filePath.includes('[username]') || filePath.includes('[') || filePath.includes(']')) {
+                return { valid: false, message: 'Please replace [username] with your actual username in the file path' };
+            }
+
+            // Check if it looks like a valid path
+            const hasPathSeparator = filePath.includes('/') || filePath.includes('\\');
+            if (!hasPathSeparator) {
+                return { valid: false, message: 'Please enter a complete file path with directory structure' };
+            }
+
+            // Check for supported file extensions
+            const supportedExtensions = [
+                '.gif', '.jpg', '.jpeg', '.png', '.webp', '.svg', '.bmp',
+                '.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.m4v',
+                '.mp3', '.wav', '.ogg', '.aac', '.m4a'
+            ];
+
+            const fileExtension = '.' + filePath.split('.').pop().toLowerCase();
+            if (!supportedExtensions.includes(fileExtension)) {
+                return { 
+                    valid: false, 
+                    message: `Unsupported file type "${fileExtension}". Supported formats: Images, Videos, Audio files` 
+                };
+            }
+
+            return { valid: true };
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            alertContainer.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Load and display memes
+        async function loadMemes() {
+            try {
+                const response = await fetch('/api/memes');
+                const memes = await response.json();
+                displayMemes(memes);
+            } catch (error) {
+                console.error('Error loading memes:', error);
+                memeList.innerHTML = '<div class="alert alert-error">Failed to load memes</div>';
+            }
+        }
+
+        // Display memes in the list
+        function displayMemes(memes) {
+            if (memes.length === 0) {
+                memeList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No memes configured</h3>
+                        <p>Add your first meme using the form above!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const memeItems = memes.map(meme => `
+                <div class="meme-item">
+                    <div>
+                        <strong>${meme.namespace}</strong><br>
+                        <small>File: ${meme.filePath}</small>
+                    </div>
+                    <div>
+                        <span class="command-badge">${meme.command}</span>
+                    </div>
+                    <div>
+                        <span class="duration-badge">${meme.duration}ms</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="editMeme('${meme.namespace}')">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteMeme('${meme.namespace}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            memeList.innerHTML = `
+                <div class="meme-header meme-item">
+                    <div>Meme</div>
+                    <div>Command</div>
+                    <div>Duration</div>
+                    <div>Actions</div>
+                </div>
+                ${memeItems}
+            `;
+        }
+
+        // Handle form submission
+        memeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(memeForm);
+            // Get the file path from the display field (user can edit this)
+            const filePath = filePathDisplay.value.trim();
+            
+            // Validate file path
+            const validation = validateFilePath(filePath);
+            if (!validation.valid) {
+                showAlert(validation.message, 'error');
+                filePathDisplay.focus();
+                return;
+            }
+
+            const memeData = {
+                namespace: formData.get('namespace'),
+                command: formData.get('command'),
+                filePath: filePath,
+                duration: parseInt(formData.get('duration'))
+            };
+
+            try {
+                let response;
+                if (isEditing) {
+                    response = await fetch(`/api/memes/${editingNamespace}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(memeData)
+                    });
+                } else {
+                    response = await fetch('/api/memes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(memeData)
+                    });
+                }
+
+                if (response.ok) {
+                    showAlert(isEditing ? 'Meme updated successfully!' : 'Meme added successfully!');
+                    memeForm.reset();
+                    cancelEdit();
+                    loadMemes();
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving meme:', error);
+                showAlert('Failed to save meme', 'error');
+            }
+        });
+
+        // Edit meme
+        async function editMeme(namespace) {
+            try {
+                const response = await fetch(`/api/memes/${namespace}`);
+                const meme = await response.json();
+                
+                // Populate form with meme data
+                document.getElementById('namespace').value = meme.namespace;
+                document.getElementById('command').value = meme.command;
+                filePathDisplay.value = meme.filePath;
+                document.getElementById('duration').value = meme.duration;
+                
+                // Switch to edit mode
+                isEditing = true;
+                editingNamespace = namespace;
+                submitBtn.textContent = 'Update Meme';
+                cancelBtn.style.display = 'inline-block';
+                document.getElementById('namespace').disabled = true;
+                
+                // Scroll to form
+                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('Error loading meme for edit:', error);
+                showAlert('Failed to load meme for editing', 'error');
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            isEditing = false;
+            editingNamespace = null;
+            submitBtn.textContent = 'Add Meme';
+            cancelBtn.style.display = 'none';
+            document.getElementById('namespace').disabled = false;
+            memeForm.reset();
+            filePathDisplay.value = '';
+        }
+
+        // Delete meme
+        async function deleteMeme(namespace) {
+            if (!confirm(`Are you sure you want to delete the meme "${namespace}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/memes/${namespace}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showAlert('Meme deleted successfully!');
+                    loadMemes();
+                } else {
+                    showAlert('Failed to delete meme', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting meme:', error);
+                showAlert('Failed to delete meme', 'error');
+            }
+        }
+
+        // Copy overlay URL to clipboard
+        function copyOverlayUrl() {
+            const overlayUrl = document.getElementById('overlayUrl');
+            overlayUrl.select();
+            document.execCommand('copy');
+            showAlert('Overlay URL copied to clipboard!');
+        }
+
+        // Open overlay in new tab for testing
+        function openOverlay() {
+            window.open('/overlays/memes', '_blank');
+        }
+
+
+        // WebSocket connection for real-time updates
+        let ws = null;
+
+        function initWebSocket() {
+            const wsUrl = `ws://${window.location.host}/ws`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected to server');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket connection closed, attempting reconnect...');
+                setTimeout(initWebSocket, 2000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'connection_status':
+                    updateConnectionStatus(data);
+                    break;
+                case 'queue_update':
+                    // Could show queue size somewhere if needed
+                    console.log('Meme queue size:', data.queueSize);
+                    break;
+                default:
+                    console.log('Unknown WebSocket message type:', data.type);
+            }
+        }
+
+        function updateConnectionStatus(statusData) {
+            const connectionContainer = document.getElementById('connectionStatusContainer');
+            const connectionIndicator = document.getElementById('connectionStatus');
+            const connectionText = document.getElementById('connectionText');
+            const connectionDetails = document.getElementById('connectionDetails');
+
+            // Show connection status container if stream manager is running
+            const streamManagerRunning = document.getElementById('streamManagerText').textContent === 'Running';
+            if (streamManagerRunning) {
+                connectionContainer.style.display = 'block';
+            }
+
+            // Update connection indicator
+            connectionIndicator.className = `connection-indicator ${statusData.status}`;
+            
+            // Update connection text
+            const statusMessages = {
+                'connecting': 'Connecting to Kick...',
+                'connected': 'Connected to Kick Chat',
+                'disconnected': 'Disconnected',
+                'reconnecting': 'Reconnecting...',
+                'error': 'Connection Error',
+                'failed': 'Connection Failed'
+            };
+            
+            connectionText.textContent = statusMessages[statusData.status] || statusData.status;
+
+            // Update connection details
+            let detailsText = '';
+            if (statusData.details) {
+                detailsText = statusData.details;
+            }
+            
+            if (statusData.status === 'reconnecting' && statusData.nextRetryIn) {
+                detailsText += ` (${statusData.nextRetryIn}s)`;
+            }
+            
+            if (statusData.reconnectAttempts > 0) {
+                detailsText += ` - Attempt ${statusData.reconnectAttempts}`;
+            }
+
+            connectionDetails.textContent = detailsText;
+        }
+
+        // Enhanced stream manager status check
+        async function checkStreamManagerStatus() {
+            const status = document.getElementById('streamManagerStatus');
+            const text = document.getElementById('streamManagerText');
+            const btn = document.getElementById('streamManagerBtn');
+            const connectionContainer = document.getElementById('connectionStatusContainer');
+            
+            try {
+                const response = await fetch('/api/stream-manager/status');
+                const result = await response.json();
+                
+                if (result.running) {
+                    btn.textContent = 'Stop Stream Manager';
+                    btn.className = 'btn btn-danger';
+                    status.className = 'status-indicator online';
+                    text.textContent = 'Running';
+                    connectionContainer.style.display = 'block';
+                } else {
+                    btn.textContent = 'Start Stream Manager';
+                    btn.className = 'btn btn-primary';
+                    status.className = 'status-indicator offline';
+                    text.textContent = 'Stopped';
+                    connectionContainer.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking stream manager status:', error);
+                status.className = 'status-indicator checking';
+                text.textContent = 'Unknown';
+                btn.textContent = 'Start Stream Manager';
+                btn.className = 'btn btn-primary';
+                connectionContainer.style.display = 'none';
+            }
+        }
+
+        // Enhanced toggle stream manager
+        async function toggleStreamManager() {
+            const btn = document.getElementById('streamManagerBtn');
+            const status = document.getElementById('streamManagerStatus');
+            const text = document.getElementById('streamManagerText');
+            const connectionContainer = document.getElementById('connectionStatusContainer');
+            
+            try {
+                const response = await fetch('/api/stream-manager/toggle', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.running) {
+                    btn.textContent = 'Stop Stream Manager';
+                    btn.className = 'btn btn-danger';
+                    status.className = 'status-indicator online';
+                    text.textContent = 'Running';
+                    connectionContainer.style.display = 'block';
+                    showAlert('Stream manager started successfully!');
+                } else {
+                    btn.textContent = 'Start Stream Manager';
+                    btn.className = 'btn btn-primary';
+                    status.className = 'status-indicator offline';
+                    text.textContent = 'Stopped';
+                    connectionContainer.style.display = 'none';
+                    showAlert('Stream manager stopped');
+                }
+            } catch (error) {
+                console.error('Error toggling stream manager:', error);
+                showAlert('Failed to toggle stream manager', 'error');
+            }
+        }
+
+        // Load memes and check status when page loads
+        loadMemes();
+        checkStreamManagerStatus();
+        initWebSocket();
+    </script>
+</body>
+</html>

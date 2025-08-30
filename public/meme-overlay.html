@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kick Meme Bot - Meme Overlay</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        .overlay-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .meme-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90vw;
+            max-height: 90vh;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .meme-display.show {
+            opacity: 1;
+        }
+
+        .meme-display img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .meme-display video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .meme-display audio {
+            display: none;
+        }
+
+        /* Connection status indicator */
+        .status-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            transition: background 0.3s ease;
+            z-index: 10000;
+        }
+
+        .status-indicator.connected {
+            background: #44ff44;
+        }
+
+        /* Debug info (hidden by default) */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+            z-index: 10000;
+        }
+
+        .debug-info.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay-container">
+        <div class="meme-display" id="memeDisplay"></div>
+        <div class="status-indicator" id="statusIndicator"></div>
+        <div class="debug-info" id="debugInfo">
+            <div>Status: <span id="debugStatus">Disconnected</span></div>
+            <div>Last Meme: <span id="debugLastMeme">None</span></div>
+            <div>Queue: <span id="debugQueue">0</span></div>
+        </div>
+    </div>
+
+    <script>
+        class MemeOverlay {
+            constructor() {
+                this.ws = null;
+                this.currentMeme = null;
+                this.memeDisplay = document.getElementById('memeDisplay');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.debugInfo = document.getElementById('debugInfo');
+                this.debugStatus = document.getElementById('debugStatus');
+                this.debugLastMeme = document.getElementById('debugLastMeme');
+                this.debugQueue = document.getElementById('debugQueue');
+                
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
+                this.reconnectDelay = 1000;
+
+                this.initializeWebSocket();
+                this.setupKeyboardShortcuts();
+                this.initializeAudio();
+            }
+
+            initializeWebSocket() {
+                const wsUrl = `ws://${window.location.host}/ws`;
+                console.log('Connecting to WebSocket:', wsUrl);
+                
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    this.statusIndicator.classList.add('connected');
+                    this.debugStatus.textContent = 'Connected';
+                    this.reconnectAttempts = 0;
+                };
+
+                this.ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    this.statusIndicator.classList.remove('connected');
+                    this.debugStatus.textContent = 'Disconnected';
+                    this.scheduleReconnect();
+                };
+
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.debugStatus.textContent = 'Error';
+                };
+
+                this.ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log('Received message:', data);
+                        this.handleMessage(data);
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+            }
+
+            scheduleReconnect() {
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${this.reconnectDelay}ms`);
+                    setTimeout(() => {
+                        this.initializeWebSocket();
+                    }, this.reconnectDelay);
+                    this.reconnectDelay *= 2; // Exponential backoff
+                } else {
+                    console.log('Max reconnect attempts reached');
+                    this.debugStatus.textContent = 'Connection Failed';
+                }
+            }
+
+            handleMessage(data) {
+                switch (data.type) {
+                    case 'trigger_meme':
+                        this.showMeme(data.meme);
+                        break;
+                    case 'queue_update':
+                        this.debugQueue.textContent = data.queueSize;
+                        break;
+                    case 'ping':
+                        this.ws.send(JSON.stringify({ type: 'pong' }));
+                        break;
+                    default:
+                        console.log('Unknown message type:', data.type);
+                }
+            }
+
+            showMeme(meme) {
+                console.log('Showing meme:', meme);
+                this.debugLastMeme.textContent = meme.namespace;
+
+                // Clear any existing content
+                this.clearMeme();
+
+                // Create appropriate element based on file type
+                const element = this.createMemeElement(meme);
+                if (!element) {
+                    console.error('Failed to create meme element for:', meme);
+                    return;
+                }
+
+                this.memeDisplay.appendChild(element);
+                
+                // Show the meme
+                requestAnimationFrame(() => {
+                    this.memeDisplay.classList.add('show');
+                });
+
+                // Hide after duration
+                setTimeout(() => {
+                    this.hideMeme();
+                }, meme.duration);
+
+                this.currentMeme = meme;
+            }
+
+            createMemeElement(meme) {
+                const filePath = meme.filePath;
+                const extension = filePath.split('.').pop().toLowerCase();
+                
+                // Encode the file path for URL safety (handles spaces and special characters)
+                const encodedPath = encodeURIComponent(filePath);
+                const fileUrl = `/file/${encodedPath}`;
+                
+                console.log('Original file path:', filePath);
+                console.log('Encoded file path:', encodedPath);
+                console.log('File URL:', fileUrl);
+                
+                let element;
+
+                if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(extension)) {
+                    element = document.createElement('img');
+                    element.src = fileUrl;
+                    element.alt = meme.namespace;
+                    
+                    element.onerror = () => {
+                        console.error('Failed to load image:', filePath);
+                        element.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiNkZGQiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjUwJSIgeT0iNDAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5NZW1lIE5vdCBGb3VuZDwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjYwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjYmJiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+JHtmaWxlUGF0aH08L3RleHQ+PC9zdmc+';
+                    };
+                } else if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv', 'm4v'].includes(extension)) {
+                    element = document.createElement('video');
+                    element.autoplay = true;
+                    element.controls = false;
+                    element.loop = false;
+                    element.playsInline = true;
+                    element.volume = 1.0;
+                    element.muted = false; // ⚡ critical: start unmuted so OBS opens an audio stream
+
+                    // Use <source> only (no element.src assignment)
+                    let type = '';
+                    if (extension === 'mp4') type = 'video/mp4';
+                    else if (extension === 'webm') type = 'video/webm';
+                    else if (extension === 'mov') type = 'video/quicktime';
+
+                    element.innerHTML = `<source src="${fileUrl}" type="${type}">`;
+
+                    // Force playback once the file is ready
+                    element.addEventListener('canplay', () => {
+                        element.play().catch(err => console.error('Play failed:', err));
+                    });
+
+                    element.onerror = () => {
+                        console.error('Failed to load video:', filePath);
+                        const fallback = document.createElement('div');
+                        fallback.style.cssText = 'display:flex;align-items:center;justify-content:center;width:400px;height:300px;background:#f0f0f0;border:2px solid #ddd;color:#999;font-family:Arial;text-align:center;';
+                        fallback.innerHTML = `<div>Video Not Found<br><small>${filePath}</small></div>`;
+                        element.replaceWith(fallback);
+                    };
+                    /*element = document.createElement('video');
+                    element.src = fileUrl;
+                    element.autoplay = true;
+                    element.setAttribute("autoplay", "");
+                    element.setAttribute("playsinline", "");
+                    element.loop = false;
+                    element.controls = false;
+                    element.playsInline = true;
+                    element.volume = 1.0;
+                    
+                    // Try to unmute after video starts playing
+                    /element.addEventListener('play', () => {
+                        console.log('Video started playing, attempting to unmute...');
+                        element.muted = false;
+                        element.volume = 1.0;
+                    });
+                    
+                    // Handle cases where unmuting fails
+                    element.addEventListener('volumechange', () => {
+                        if (element.muted) {
+                            console.log('Video is muted - audio may be blocked by browser policy');
+                        } else {
+                            console.log('Video unmuted successfully, volume:', element.volume);
+                        }
+                    });
+                    
+                    // Add multiple source formats for better compatibility
+                    if (extension === 'mp4') {
+                        element.innerHTML = `<source src="${fileUrl}" type="video/mp4">`;
+                    } else if (extension === 'webm') {
+                        element.innerHTML = `<source src="${fileUrl}" type="video/webm">`;
+                    } else if (extension === 'mov') {
+                        element.innerHTML = `<source src="${fileUrl}" type="video/quicktime">`;
+                    }
+                    
+                    element.onerror = () => {
+                        console.error('Failed to load video:', filePath);
+                        // Create fallback image for video errors
+                        const fallback = document.createElement('div');
+                        fallback.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 400px; height: 300px; background: #f0f0f0; border: 2px solid #ddd; color: #999; font-family: Arial; text-align: center;';
+                        fallback.innerHTML = `<div>Video Not Found<br><small>${filePath}</small></div>`;
+                        element.replaceWith(fallback);
+                    };*/
+                } else if (['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(extension)) {
+                    element = document.createElement('audio');
+                    element.src = fileUrl;
+                    element.autoplay = true;
+                    element.volume = 0.8;
+                    
+                    // Add multiple source formats for better compatibility
+                    if (extension === 'mp3') {
+                        element.innerHTML = `<source src="${fileUrl}" type="audio/mpeg">`;
+                    } else if (extension === 'wav') {
+                        element.innerHTML = `<source src="${fileUrl}" type="audio/wav">`;
+                    } else if (extension === 'ogg') {
+                        element.innerHTML = `<source src="${fileUrl}" type="audio/ogg">`;
+                    }
+                    
+                    element.onerror = () => {
+                        console.error('Failed to load audio:', filePath);
+                    };
+                } else {
+                    console.error('Unsupported file type:', extension);
+                    // Create fallback for unsupported types
+                    const fallback = document.createElement('div');
+                    fallback.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 300px; height: 200px; background: #f0f0f0; border: 2px solid #ddd; color: #999; font-family: Arial; text-align: center;';
+                    fallback.innerHTML = `<div>Unsupported File Type<br><small>.${extension}</small><br><small>${filePath}</small></div>`;
+                    return fallback;
+                }
+
+                return element;
+            }
+
+            hideMeme() {
+                this.memeDisplay.classList.remove('show');
+                setTimeout(() => {
+                    this.clearMeme();
+                }, 300); // Wait for fade out
+            }
+
+            clearMeme() {
+                this.memeDisplay.innerHTML = '';
+                this.currentMeme = null;
+            }
+
+            initializeAudio() {
+                // Try to create an audio context to help with browser audio policies
+                try {
+                    if (window.AudioContext || window.webkitAudioContext) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log('Audio context initialized');
+                        
+                        // Try to resume audio context if it's suspended
+                        if (this.audioContext.state === 'suspended') {
+                            this.audioContext.resume().then(() => {
+                                console.log('Audio context resumed');
+                            }).catch(err => {
+                                console.log('Failed to resume audio context:', err);
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.log('Failed to initialize audio context:', error);
+                }
+            }
+
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (event) => {
+                    // Press 'D' to toggle debug info
+                    if (event.key === 'd' || event.key === 'D') {
+                        this.debugInfo.classList.toggle('show');
+                    }
+                    // Press 'R' to reconnect WebSocket
+                    if (event.key === 'r' || event.key === 'R') {
+                        if (this.ws) {
+                            this.ws.close();
+                        }
+                        this.reconnectAttempts = 0;
+                        this.reconnectDelay = 1000;
+                        this.initializeWebSocket();
+                    }
+                    // Press 'A' to test audio (requires user interaction)
+                    if (event.key === 'a' || event.key === 'A') {
+                        if (this.audioContext && this.audioContext.state === 'suspended') {
+                            this.audioContext.resume().then(() => {
+                                console.log('Audio context resumed via user interaction');
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize the overlay when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            new MemeOverlay();
+        });
+
+        // Prevent context menu (right-click) in OBS
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
